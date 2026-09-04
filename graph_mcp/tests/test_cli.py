@@ -14,4 +14,4 @@ def test_version_flag_prints_version_and_exits_zero() -> None:
     result = runner.invoke(main, ["--version"])
 
     assert result.exit_code == 0
-    assert version("graph-spec") in result.output
+    assert version("copilot-graph-spec") in result.output

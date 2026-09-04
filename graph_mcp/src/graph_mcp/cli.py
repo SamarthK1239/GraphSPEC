@@ -15,7 +15,7 @@ from graph_mcp.mcp_server.db_queries import vec_table_exists
 
 
 @click.group()
-@click.version_option(package_name="graph-spec")
+@click.version_option(package_name="copilot-graph-spec")
 def main() -> None:
     """graph-mcp command line interface."""
 

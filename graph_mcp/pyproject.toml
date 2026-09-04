@@ -1,5 +1,5 @@
 [project]
-name = "graph-spec"
+name = "copilot-graph-spec"
 version = "0.1.0"
 description = "Python MCP server serving a unified code + spec graph for context-efficient agent workflows"
 license = "MIT"

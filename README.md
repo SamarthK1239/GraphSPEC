@@ -34,7 +34,7 @@ keeps context small on large projects.
 ### Adding `graph-mcp` to an existing project
 
 ```bash
-pip install graph-spec                # or: uv tool install graph-spec
+pip install copilot-graph-spec                # or: uv tool install copilot-graph-spec
 cd /path/to/your-project
 graph-mcp init                       # scaffolds .vscode/mcp.json, .github/{agents,prompts,
                                       # instructions}, spec/{constitution.md,templates},

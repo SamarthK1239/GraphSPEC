@@ -1,5 +1,5 @@
 """Opt-in embedder backend: sentence-transformers (PyTorch). Requires the
-optional `torch` extra: `pip install graph-spec[torch]` (not installed by default).
+optional `torch` extra: `pip install copilot-graph-spec[torch]` (not installed by default).
 """
 
 from __future__ import annotations

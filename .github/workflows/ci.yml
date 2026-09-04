@@ -19,9 +19,9 @@ jobs:
         uses: astral-sh/setup-uv@v3
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install graph-mcp
+      - name: Install copilot-graph-spec
         working-directory: graph_mcp
-        run: uv pip install --system -e ".[dev]"
+        run: uv sync --extra dev
       - name: Run tests
         working-directory: graph_mcp
-        run: pytest -q
+        run: uv run pytest -q

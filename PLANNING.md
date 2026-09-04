@@ -112,5 +112,6 @@ All 9 phases are complete as of this writing.
 - Actually publishing to PyPI (creating the account, adding a
   `PYPI_API_TOKEN`/trusted-publisher secret) is a manual one-time step
   `release.yml` depends on but can't do on its own. The distribution is
-  named `graph-spec` on PyPI (the `graph-mcp` name was already taken); the
-  installed console script/CLI command remains `graph-mcp`.
+  named `copilot-graph-spec` on PyPI (`graph-mcp` and `graph-spec` were
+  both already taken); the installed console script/CLI command remains
+  `graph-mcp`.
