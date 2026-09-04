@@ -1,17 +1,33 @@
 [project]
 name = "copilot-graph-spec"
-version = "0.1.0"
-description = "Python MCP server serving a unified code + spec graph for context-efficient agent workflows"
+version = "0.1.1"
+description = "Copilot-native spec-driven development workflow backed by a local Python MCP server that serves a unified code + spec graph, so agents fetch exact pointers/spans instead of whole files."
+readme = "README.md"
 license = "MIT"
 requires-python = ">=3.11"
 authors = [{ name = "Samarth Kulkarni" }]
+keywords = [
+    "mcp",
+    "model-context-protocol",
+    "copilot",
+    "spec-driven-development",
+    "code-graph",
+    "tree-sitter",
+    "ai-agents",
+    "llm-tools",
+]
 classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Operating System :: OS Independent",
+    "Topic :: Software Development :: Documentation",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Text Processing :: Indexing",
 ]
 dependencies = [
     "mcp",
@@ -26,6 +42,8 @@ dependencies = [
 Homepage = "https://github.com/SamarthK1239/GraphSPEC"
 Repository = "https://github.com/SamarthK1239/GraphSPEC"
 Issues = "https://github.com/SamarthK1239/GraphSPEC/issues"
+Documentation = "https://github.com/SamarthK1239/GraphSPEC/blob/main/docs/USER_GUIDE.md"
+Changelog = "https://github.com/SamarthK1239/GraphSPEC/blob/main/PLANNING.md"
 
 [project.optional-dependencies]
 torch = [

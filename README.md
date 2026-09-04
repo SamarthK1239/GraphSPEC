@@ -31,6 +31,10 @@ keeps context small on large projects.
 
 ## Quick Start
 
+For the full CLI reference, MCP tool details, configuration options, and
+troubleshooting beyond this quickstart, see the
+[**User Guide**](docs/USER_GUIDE.md).
+
 ### Adding `graph-mcp` to an existing project
 
 ```bash
@@ -169,6 +173,8 @@ afterward, then start a feature with `/specify` as usual.
   agents/{spec,plan,tasks,implement,analyze}.agent.md
   prompts/{specify,plan,tasks,implement,analyze}.prompt.md
   workflows/{ci,release}.yml
+docs/
+  USER_GUIDE.md              # full manual: CLI, MCP tools, config, workflow, troubleshooting
 spec/
   constitution.md
   templates/{spec,plan,tasks,research}.template.md
