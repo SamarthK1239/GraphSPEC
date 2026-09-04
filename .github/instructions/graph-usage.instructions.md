@@ -1,11 +1,11 @@
 ---
-description: "Always-on: prefer graph_mcp queries over reading whole files for source code exploration."
+description: "Always-on: prefer copilot-graph-spec's graph_* queries over reading whole files for source code exploration."
 applyTo: "**"
 ---
 
 # Graph-First Code Exploration
 
-When `graph-mcp` MCP tools are available, use them instead of opening whole
+When `copilot-graph-spec` MCP tools are available, use them instead of opening whole
 source files:
 
 1. **Locate** with `graph_search` (or `graph_file_outline` / `graph_get_symbol`
@@ -19,4 +19,4 @@ This applies to *source code* exploration only. Reading/editing
 file tools, since those aren't part of the code graph until `analyze` runs.
 
 If the graph looks stale (missing recent changes), rebuild it from
-`graph_mcp/`: `uv run graph-mcp index .. && uv run graph-mcp embed`.
+`copilot_graph_spec/`: `uv run copilot-graph-spec index .. && uv run copilot-graph-spec embed`.

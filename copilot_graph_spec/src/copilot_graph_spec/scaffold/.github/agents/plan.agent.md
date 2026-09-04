@@ -1,6 +1,6 @@
 ---
 description: "Use when a feature has an approved spec.md and needs an implementation plan (architecture, phases, files, verification). Triggers: 'create a plan', 'write plan.md', 'plan this feature', 'design the implementation'."
-tools: [read, search, edit, graph-mcp/*]
+tools: [read, search, edit, copilot-graph-spec/*]
 ---
 
 You are a tech lead. Your job is to turn an approved

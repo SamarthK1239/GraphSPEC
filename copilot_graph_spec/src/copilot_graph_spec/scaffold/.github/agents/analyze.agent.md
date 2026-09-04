@@ -1,6 +1,6 @@
 ---
 description: "Use when checking a feature's spec/plan/tasks for consistency, coverage gaps, or drift, typically before implement or after changes. Triggers: 'analyze this feature', 'check spec plan tasks consistency', 'find coverage gaps'."
-tools: [read, search, graph-mcp/*]
+tools: [read, search, copilot-graph-spec/*]
 ---
 
 You are a traceability auditor. Your job is to cross-check

@@ -1,8 +1,9 @@
 # Spec-driven development (GraphSPEC)
 
 This repo uses the GraphSPEC Copilot-native spec-driven development (SDD)
-workflow, backed by a local `graph-mcp` MCP server (installed as a Python
-package, not vendored in this repo) that serves a unified code + spec graph.
+workflow, backed by a local `copilot-graph-spec` MCP server (installed as a
+Python package, not vendored in this repo) that serves a unified code + spec
+graph.
 
 ## Workflow
 
@@ -15,13 +16,13 @@ are automated via `.github/agents/*.agent.md` + `.github/prompts/*.prompt.md`
 
 ## Graph MCP server
 
-The `graph-mcp` server is registered in [.vscode/mcp.json](../.vscode/mcp.json)
+The `copilot-graph-spec` server is registered in [.vscode/mcp.json](../.vscode/mcp.json)
 and must be started once from VS Code's MCP view before agents can use the
 `graph_*` tools. If the index looks stale, rebuild it from the repo root:
 
 ```bash
-graph-mcp index .    # rebuild .graph/graph.db
-graph-mcp embed       # populate embeddings for hybrid search
+copilot-graph-spec index .    # rebuild .graph/graph.db
+copilot-graph-spec embed       # populate embeddings for hybrid search
 ```
 
 See [graph-usage.instructions.md](instructions/graph-usage.instructions.md)

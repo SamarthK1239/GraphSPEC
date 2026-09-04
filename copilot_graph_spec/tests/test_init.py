@@ -1,11 +1,11 @@
-"""Tests for `graph-mcp init` scaffolding (`graph_mcp.init_cmd`)."""
+"""Tests for `copilot-graph-spec init` scaffolding (`copilot_graph_spec.init_cmd`)."""
 
 from __future__ import annotations
 
 import json
 from pathlib import Path
 
-from graph_mcp.init_cmd import scaffold_project
+from copilot_graph_spec.init_cmd import scaffold_project
 
 
 def test_scaffold_project_creates_expected_tree(tmp_path: Path) -> None:
@@ -17,13 +17,13 @@ def test_scaffold_project_creates_expected_tree(tmp_path: Path) -> None:
     assert statuses[".github/instructions/graph-usage.instructions.md"] == "created"
     assert statuses["spec/constitution.md"] == "created"
     assert statuses["spec/templates/spec.template.md"] == "created"
-    assert statuses[".graph-mcp.toml"] == "created"
+    assert statuses[".copilot-graph-spec.toml"] == "created"
     assert statuses[".gitignore"] in ("created", "appended")
     for agent in ("spec", "plan", "tasks", "analyze", "implement"):
         assert statuses[f".github/agents/{agent}.agent.md"] == "created"
 
-    assert (tmp_path / ".graph-mcp.toml").exists()
-    assert not (tmp_path / "graph-mcp.toml.tmpl").exists()
+    assert (tmp_path / ".copilot-graph-spec.toml").exists()
+    assert not (tmp_path / "copilot-graph-spec.toml.tmpl").exists()
     assert ".graph/" in (tmp_path / ".gitignore").read_text()
 
 
@@ -32,8 +32,8 @@ def test_scaffold_project_mcp_json_points_at_installed_console_script(tmp_path: 
 
     config = json.loads((tmp_path / ".vscode" / "mcp.json").read_text())
 
-    assert config["servers"]["graph-mcp"]["command"] == "graph-mcp"
-    assert config["servers"]["graph-mcp"]["args"] == ["serve"]
+    assert config["servers"]["copilot-graph-spec"]["command"] == "copilot-graph-spec"
+    assert config["servers"]["copilot-graph-spec"]["args"] == ["serve"]
 
 
 def test_scaffold_project_skips_existing_files_without_force(tmp_path: Path) -> None:

@@ -19,7 +19,7 @@ import json
 import re
 from pathlib import Path
 
-from graph_mcp.indexer.models import EdgeRecord, NodeRecord
+from copilot_graph_spec.indexer.models import EdgeRecord, NodeRecord
 
 _REQ_START_RE = re.compile(r"^-\s*REQ-\d+:")
 _PLAN_START_RE = re.compile(r"^-\s*PLAN-\d+:")

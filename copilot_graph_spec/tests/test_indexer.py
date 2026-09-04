@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from graph_mcp.indexer.core import build_index
-from graph_mcp.indexer.extractor import extract_file
+from copilot_graph_spec.indexer.core import build_index
+from copilot_graph_spec.indexer.extractor import extract_file
 
 
 def test_extract_python_functions_and_calls() -> None:

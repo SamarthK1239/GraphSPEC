@@ -10,10 +10,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from graph_mcp.db import connect
-from graph_mcp.indexer.core import build_index
-from graph_mcp.mcp_server import db_queries
-from graph_mcp.mcp_server.read_span import read_span
+from copilot_graph_spec.db import connect
+from copilot_graph_spec.indexer.core import build_index
+from copilot_graph_spec.mcp_server import db_queries
+from copilot_graph_spec.mcp_server.read_span import read_span
 
 
 def _estimate_tokens(text: str) -> int:

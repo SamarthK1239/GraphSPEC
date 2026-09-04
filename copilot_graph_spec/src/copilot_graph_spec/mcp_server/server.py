@@ -1,4 +1,4 @@
-"""Builds the graph-mcp MCPServer and registers the 8 graph_* tools.
+"""Builds the copilot-graph-spec MCPServer and registers the 8 graph_* tools.
 
 Each tool opens a short-lived SQLite connection (SQLite connections aren't
 shared safely across the worker threads the MCP SDK dispatches sync tools
@@ -13,10 +13,10 @@ from pathlib import Path
 
 from mcp.server.mcpserver import MCPServer
 
-from graph_mcp.db import load_vec_extension
-from graph_mcp.embeddings import Embedder, get_embedder
-from graph_mcp.mcp_server import db_queries
-from graph_mcp.mcp_server.read_span import read_span
+from copilot_graph_spec.db import load_vec_extension
+from copilot_graph_spec.embeddings import Embedder, get_embedder
+from copilot_graph_spec.mcp_server import db_queries
+from copilot_graph_spec.mcp_server.read_span import read_span
 
 
 def _connect(db_path: Path) -> sqlite3.Connection:
@@ -28,7 +28,7 @@ def _connect(db_path: Path) -> sqlite3.Connection:
 
 def build_server(db_path: Path, repo_root: Path) -> MCPServer:
     server = MCPServer(
-        "graph-mcp",
+        "copilot-graph-spec",
         instructions=(
             "Query the code + spec graph for pointers (path, line span, signature) "
             "instead of reading whole files. Use graph_search/graph_file_outline/"
@@ -50,7 +50,7 @@ def build_server(db_path: Path, repo_root: Path) -> MCPServer:
     def graph_search(query: str, limit: int = 20) -> dict:
         """Lexical (FTS5) + vector hybrid search over symbols/files, fused via RRF.
 
-        Falls back to lexical-only until `graph-mcp embed` has populated vectors.
+        Falls back to lexical-only until `copilot-graph-spec embed` has populated vectors.
         """
         conn = _connect(db_path)
         try:

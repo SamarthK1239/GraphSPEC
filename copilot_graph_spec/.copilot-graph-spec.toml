@@ -1,4 +1,4 @@
-# Dogfoods graph-mcp's own `.graph-mcp.toml` discovery from graph_mcp/'s cwd.
-[graph-mcp]
+# Dogfoods copilot-graph-spec's own `.copilot-graph-spec.toml` discovery from copilot_graph_spec/'s cwd.
+[copilot-graph-spec]
 root = ".."
 db = "../.graph/graph.db"

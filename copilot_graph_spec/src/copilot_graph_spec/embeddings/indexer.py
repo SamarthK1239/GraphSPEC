@@ -6,7 +6,7 @@ import sqlite3
 
 import sqlite_vec
 
-from graph_mcp.embeddings.base import Embedder
+from copilot_graph_spec.embeddings.base import Embedder
 
 
 def ensure_vec_table(conn: sqlite3.Connection, dimension: int) -> None:

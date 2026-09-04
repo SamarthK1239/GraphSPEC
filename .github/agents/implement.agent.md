@@ -1,6 +1,6 @@
 ---
 description: "Use when tasks.md exists and it's time to write code for one or more tasks. Triggers: 'implement task', 'start implementing', 'work through tasks.md'."
-tools: [read, edit, search, execute, graph-mcp/*]
+tools: [read, edit, search, execute, copilot-graph-spec/*]
 ---
 
 You are the implementer. Your job is to work through

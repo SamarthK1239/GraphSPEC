@@ -1,6 +1,6 @@
 """Selects an embedder backend by name, defaulting to fastembed.
 
-Configurable via args or the GRAPH_MCP_EMBED_BACKEND / GRAPH_MCP_EMBED_MODEL
+Configurable via args or the COPILOT_GRAPH_SPEC_EMBED_BACKEND / COPILOT_GRAPH_SPEC_EMBED_MODEL
 env vars so the model stays swappable without code changes.
 """
 
@@ -8,21 +8,21 @@ from __future__ import annotations
 
 import os
 
-from graph_mcp.embeddings.base import Embedder
+from copilot_graph_spec.embeddings.base import Embedder
 
 BACKENDS = ("fastembed", "sentence-transformers")
 
 
 def get_embedder(backend: str | None = None, model_name: str | None = None) -> Embedder:
-    backend = backend or os.environ.get("GRAPH_MCP_EMBED_BACKEND", "fastembed")
-    model_name = model_name or os.environ.get("GRAPH_MCP_EMBED_MODEL")
+    backend = backend or os.environ.get("COPILOT_GRAPH_SPEC_EMBED_BACKEND", "fastembed")
+    model_name = model_name or os.environ.get("COPILOT_GRAPH_SPEC_EMBED_MODEL")
 
     if backend == "fastembed":
-        from graph_mcp.embeddings.fastembed_backend import DEFAULT_MODEL, FastEmbedEmbedder
+        from copilot_graph_spec.embeddings.fastembed_backend import DEFAULT_MODEL, FastEmbedEmbedder
 
         return FastEmbedEmbedder(model_name or DEFAULT_MODEL)
     if backend == "sentence-transformers":
-        from graph_mcp.embeddings.sentence_transformers_backend import (
+        from copilot_graph_spec.embeddings.sentence_transformers_backend import (
             DEFAULT_MODEL,
             SentenceTransformerEmbedder,
         )

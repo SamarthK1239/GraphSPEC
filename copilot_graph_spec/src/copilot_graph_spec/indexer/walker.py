@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Iterator
 from pathlib import Path
 
-from graph_mcp.indexer.languages import detect_language
+from copilot_graph_spec.indexer.languages import detect_language
 
 EXCLUDED_DIRS = {
     ".git",

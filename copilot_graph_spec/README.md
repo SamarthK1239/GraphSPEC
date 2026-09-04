@@ -1,4 +1,4 @@
-# copilot-graph-spec (`graph-mcp`)
+# copilot-graph-spec
 
 Copilot-native spec-driven development (SDD) workflow — `constitution →
 specify → plan → tasks → analyze → implement` — backed by a local **Python
@@ -15,10 +15,10 @@ keeps context small on large projects.
 ```bash
 pip install copilot-graph-spec        # or: uv tool install copilot-graph-spec
 cd /path/to/your-project
-graph-mcp init                        # scaffold .vscode/mcp.json, .github/{agents,prompts,
+copilot-graph-spec init                # scaffold .vscode/mcp.json, .github/{agents,prompts,
                                        # instructions}, spec/{constitution.md,templates}
-graph-mcp index .                     # build .graph/graph.db
-graph-mcp embed                       # populate embeddings for hybrid search
+copilot-graph-spec index .             # build .graph/graph.db
+copilot-graph-spec embed               # populate embeddings for hybrid search
 ```
 
 ## What you get

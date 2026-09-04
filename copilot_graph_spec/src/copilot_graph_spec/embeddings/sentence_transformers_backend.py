@@ -14,7 +14,7 @@ class SentenceTransformerEmbedder:
         except ImportError as exc:
             raise ImportError(
                 "sentence-transformers is not installed. Install the optional "
-                "'torch' extra to use this backend: pip install 'graph-mcp[torch]'"
+                "'torch' extra to use this backend: pip install 'copilot-graph-spec[torch]'"
             ) from exc
         self._model = SentenceTransformer(model_name)
         self.dimension = self._model.get_sentence_embedding_dimension()

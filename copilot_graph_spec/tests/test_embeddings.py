@@ -13,9 +13,9 @@ from pathlib import Path
 
 import sqlite_vec
 
-from graph_mcp.db import connect
-from graph_mcp.embeddings.indexer import embed_nodes, ensure_vec_table
-from graph_mcp.mcp_server import db_queries
+from copilot_graph_spec.db import connect
+from copilot_graph_spec.embeddings.indexer import embed_nodes, ensure_vec_table
+from copilot_graph_spec.mcp_server import db_queries
 
 
 class StubEmbedder:

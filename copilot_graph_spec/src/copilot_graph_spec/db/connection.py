@@ -7,7 +7,7 @@ from pathlib import Path
 
 import sqlite_vec
 
-from graph_mcp.db.schema import SCHEMA
+from copilot_graph_spec.db.schema import SCHEMA
 
 
 def load_vec_extension(conn: sqlite3.Connection) -> None:

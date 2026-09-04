@@ -35,31 +35,31 @@ For the full CLI reference, MCP tool details, configuration options, and
 troubleshooting beyond this quickstart, see the
 [**User Guide**](docs/USER_GUIDE.md).
 
-### Adding `graph-mcp` to an existing project
+### Adding `copilot-graph-spec` to an existing project
 
 ```bash
 pip install copilot-graph-spec                # or: uv tool install copilot-graph-spec
 cd /path/to/your-project
-graph-mcp init                       # scaffolds .vscode/mcp.json, .github/{agents,prompts,
+copilot-graph-spec init                # scaffolds .vscode/mcp.json, .github/{agents,prompts,
                                       # instructions}, spec/{constitution.md,templates},
-                                      # .graph-mcp.toml and a .gitignore entry for .graph/
-graph-mcp index .                    # build .graph/graph.db
-graph-mcp embed                      # populate embeddings for hybrid search
+                                      # .copilot-graph-spec.toml and a .gitignore entry for .graph/
+copilot-graph-spec index .             # build .graph/graph.db
+copilot-graph-spec embed               # populate embeddings for hybrid search
 ```
 
 `init` never overwrites files that already exist (pass `--force` to overwrite).
-Open the project in VS Code and start the `graph-mcp` server once from the MCP
+Open the project in VS Code and start the `copilot-graph-spec` server once from the MCP
 view/Command Palette — see **Troubleshooting** below.
 
 ### Developing GraphSPEC itself
 
 ```bash
-cd graph_mcp
+cd copilot_graph_spec
 uv pip install -e ".[dev]"        # or: pip install -e ".[dev]"
 
-uv run graph-mcp index ..         # build .graph/graph.db from the repo root
-uv run graph-mcp embed            # populate embeddings for hybrid search
-uv run graph-mcp serve            # run the MCP server over stdio
+uv run copilot-graph-spec index ..         # build .graph/graph.db from the repo root
+uv run copilot-graph-spec embed            # populate embeddings for hybrid search
+uv run copilot-graph-spec serve            # run the MCP server over stdio
 ```
 
 The server is already registered in [.vscode/mcp.json](.vscode/mcp.json).
@@ -70,18 +70,18 @@ this workspace can use the graph tools live.
 
 - **MCP tools aren't showing up in chat.** The server is registered but not
   auto-started on first open — open VS Code's MCP view (Command Palette →
-  "MCP: List Servers") and start `graph-mcp` manually. Re-running the
-  `serve` command by hand (`graph-mcp serve` / `uv run graph-mcp serve`)
+  "MCP: List Servers") and start `copilot-graph-spec` manually. Re-running the
+  `serve` command by hand (`copilot-graph-spec serve` / `uv run copilot-graph-spec serve`)
   should also succeed with no error if the install is healthy.
 - **`.vscode/mcp.json` fails to start with `uv` errors.** The scaffolded
-  config for adopted projects invokes the installed `graph-mcp` console
+  config for adopted projects invokes the installed `copilot-graph-spec` console
   script directly (no `uv` dependency); only *this* repo's own `.vscode/mcp.json`
-  requires `uv` (since it builds `graph-mcp` from source in `graph_mcp/`).
+  requires `uv` (since it builds `copilot-graph-spec` from source in `copilot_graph_spec/`).
 
 ## Editor & client support
 
 The 8 `graph_*` MCP tools are client-agnostic — any MCP-compatible host
-(VS Code, Claude Desktop, etc.) can use them once `graph-mcp serve` is
+(VS Code, Claude Desktop, etc.) can use them once `copilot-graph-spec serve` is
 registered. The 5-stage SDD workflow (`.github/agents/*.agent.md` +
 `.github/prompts/*.prompt.md`) uses VS Code's Copilot custom-agent format
 specifically — other MCP hosts get the graph tools but not that workflow.
@@ -90,16 +90,16 @@ specifically — other MCP hosts get the graph tools but not that workflow.
 
 | Command | Purpose |
 | --- | --- |
-| `graph-mcp index [ROOT] [--db PATH] [--incremental]` | Build (or incrementally update) the graph database |
-| `graph-mcp embed [--db PATH] [--backend NAME] [--model NAME] [--force]` | Compute embeddings for hybrid search |
-| `graph-mcp watch [ROOT] [--db PATH] [--interval N]` | Poll for changes; incrementally re-index + re-embed |
-| `graph-mcp serve [--root PATH] [--db PATH]` | Run the MCP server over stdio |
-| `graph-mcp init [TARGET] [--force]` | Scaffold the SDD workflow + MCP config into an existing project |
-| `graph-mcp --version` | Print the installed version |
+| `copilot-graph-spec index [ROOT] [--db PATH] [--incremental]` | Build (or incrementally update) the graph database |
+| `copilot-graph-spec embed [--db PATH] [--backend NAME] [--model NAME] [--force]` | Compute embeddings for hybrid search |
+| `copilot-graph-spec watch [ROOT] [--db PATH] [--interval N]` | Poll for changes; incrementally re-index + re-embed |
+| `copilot-graph-spec serve [--root PATH] [--db PATH]` | Run the MCP server over stdio |
+| `copilot-graph-spec init [TARGET] [--force]` | Scaffold the SDD workflow + MCP config into an existing project |
+| `copilot-graph-spec --version` | Print the installed version |
 
 `index`/`embed`/`watch`/`serve` resolve `ROOT`/`--db` in this order: explicit
-flag > nearest `.graph-mcp.toml` (written by `init`, or hand-authored) >
-built-in default. See [graph_mcp/src/graph_mcp/config.py](graph_mcp/src/graph_mcp/config.py).
+flag > nearest `.copilot-graph-spec.toml` (written by `init`, or hand-authored) >
+built-in default. See [copilot_graph_spec/src/copilot_graph_spec/config.py](copilot_graph_spec/src/copilot_graph_spec/config.py).
 
 ## MCP Tools
 
@@ -116,20 +116,20 @@ built-in default. See [graph_mcp/src/graph_mcp/config.py](graph_mcp/src/graph_mc
 
 ## Architecture
 
-- `graph_mcp/src/graph_mcp/indexer` — tree-sitter code parsing + the
+- `copilot_graph_spec/src/copilot_graph_spec/indexer` — tree-sitter code parsing + the
   `spec/features/**` markdown parser, both incremental-aware. Adding a
   language means adding a `LanguageConfig` entry to
-  [indexer/languages.py](graph_mcp/src/graph_mcp/indexer/languages.py) (a
+  [indexer/languages.py](copilot_graph_spec/src/copilot_graph_spec/indexer/languages.py) (a
   code-level extension point today, not a runtime plugin system).
-- `graph_mcp/src/graph_mcp/embeddings` — pluggable embedder (`fastembed`
+- `copilot_graph_spec/src/copilot_graph_spec/embeddings` — pluggable embedder (`fastembed`
   default, `sentence-transformers` opt-in via the `[torch]` extra).
-- `graph_mcp/src/graph_mcp/db` — SQLite schema/connection helpers.
-- `graph_mcp/src/graph_mcp/mcp_server` — the 8 `graph_*` tool implementations.
-- `graph_mcp/src/graph_mcp/cli` — the `graph-mcp` command line entry point.
-- `graph_mcp/src/graph_mcp/config.py` — `.graph-mcp.toml` discovery for
+- `copilot_graph_spec/src/copilot_graph_spec/db` — SQLite schema/connection helpers.
+- `copilot_graph_spec/src/copilot_graph_spec/mcp_server` — the 8 `graph_*` tool implementations.
+- `copilot_graph_spec/src/copilot_graph_spec/cli` — the `copilot-graph-spec` command line entry point.
+- `copilot_graph_spec/src/copilot_graph_spec/config.py` — `.copilot-graph-spec.toml` discovery for
   relocatable `root`/`db` defaults.
-- `graph_mcp/src/graph_mcp/init_cmd.py` + `scaffold/` — the bundled
-  templates and logic behind `graph-mcp init`.
+- `copilot_graph_spec/src/copilot_graph_spec/init_cmd.py` + `scaffold/` — the bundled
+  templates and logic behind `copilot-graph-spec init`.
 
 **SQLite schema:** `nodes(id, type, path, name, signature, line_start,
 line_end, hash, meta)` · `edges(src, dst, type)` · `nodes_fts` (FTS5 lexical
@@ -157,11 +157,11 @@ added the `--version` flag above.
 
 ### Retrofitting an existing project
 
-`graph-mcp init` (see Quick Start) drops the same workflow files this repo
-uses into any other repo, without vendoring `graph_mcp`'s source: `.vscode/mcp.json`
+`copilot-graph-spec init` (see Quick Start) drops the same workflow files this repo
+uses into any other repo, without vendoring `copilot_graph_spec`'s source: `.vscode/mcp.json`
 pointing at the installed console script, `.github/agents`+`prompts`+`instructions`,
-`spec/constitution.md`+`templates`, and a `.graph-mcp.toml` so `index`/`embed`/`serve`
-work from that repo's own root without extra flags. Run `graph-mcp index . && graph-mcp embed`
+`spec/constitution.md`+`templates`, and a `.copilot-graph-spec.toml` so `index`/`embed`/`serve`
+work from that repo's own root without extra flags. Run `copilot-graph-spec index . && copilot-graph-spec embed`
 afterward, then start a feature with `/specify` as usual.
 
 ## Directory Layout
@@ -179,13 +179,13 @@ spec/
   constitution.md
   templates/{spec,plan,tasks,research}.template.md
   features/<slug>/{spec.md,plan.md,tasks.md,research.md}
-graph_mcp/
+copilot_graph_spec/
   pyproject.toml
-  .graph-mcp.toml           # this repo's own root/db config (dogfood)
-  src/graph_mcp/{indexer,mcp_server,cli,db,embeddings,config.py,init_cmd.py,scaffold}
+  .copilot-graph-spec.toml  # this repo's own root/db config (dogfood)
+  src/copilot_graph_spec/{indexer,mcp_server,cli,db,embeddings,config.py,init_cmd.py,scaffold}
   tests/
 .graph/graph.db            # generated index (gitignored)
-.vscode/mcp.json           # registers stdio server (uv run graph-mcp serve)
+.vscode/mcp.json           # registers stdio server (uv run copilot-graph-spec serve)
 scripts/                   # index / refresh / validate helpers
 LICENSE
 CONTRIBUTING.md
@@ -194,7 +194,7 @@ CONTRIBUTING.md
 ## Development
 
 ```bash
-cd graph_mcp
+cd copilot_graph_spec
 uv run pytest       # full test suite
 ```
 
@@ -204,7 +204,7 @@ under [MIT](LICENSE).
 ## Status
 
 v1 implemented (9 phases, see [PLANNING.md](PLANNING.md)) including this
-shareability hardening pass — CI, packaging, `.graph-mcp.toml`, and
-`graph-mcp init` for adopting the tool into other projects.
+shareability hardening pass — CI, packaging, `.copilot-graph-spec.toml`, and
+`copilot-graph-spec init` for adopting the tool into other projects.
 
  

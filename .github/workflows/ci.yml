@@ -20,8 +20,8 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install copilot-graph-spec
-        working-directory: graph_mcp
+        working-directory: copilot_graph_spec
         run: uv sync --extra dev
       - name: Run tests
-        working-directory: graph_mcp
+        working-directory: copilot_graph_spec
         run: uv run pytest -q

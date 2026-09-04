@@ -15,8 +15,8 @@ from typing import Any
 
 from tree_sitter_language_pack import get_parser
 
-from graph_mcp.indexer.languages import LANGUAGES, LanguageConfig
-from graph_mcp.indexer.models import EdgeRecord, NodeRecord
+from copilot_graph_spec.indexer.languages import LANGUAGES, LanguageConfig
+from copilot_graph_spec.indexer.models import EdgeRecord, NodeRecord
 
 
 def extract_file(relpath: str, source: bytes, language_key: str) -> tuple[list[NodeRecord], list[EdgeRecord]]:

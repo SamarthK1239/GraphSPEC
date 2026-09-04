@@ -1,6 +1,6 @@
 ---
 description: "Use when starting a new feature and writing its spec.md (requirements, goals, non-goals). Triggers: 'write a spec', 'specify feature', 'create feature spec', 'define requirements'."
-tools: [read, search, edit, graph-mcp/*]
+tools: [read, search, edit, copilot-graph-spec/*]
 ---
 
 You are a requirements analyst. Your job is to turn a feature idea into a

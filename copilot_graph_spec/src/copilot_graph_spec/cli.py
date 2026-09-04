@@ -1,23 +1,23 @@
-"""CLI entry point (click/typer) for graph-mcp: index, serve, etc. (Phase 1/2)."""
+"""CLI entry point (click/typer) for copilot-graph-spec: index, serve, etc. (Phase 1/2)."""
 
 import time
 from pathlib import Path
 
 import click
 
-from graph_mcp.config import resolve_path
-from graph_mcp.db import connect
-from graph_mcp.embeddings import embed_nodes, get_embedder
-from graph_mcp.indexer import build_index, incremental_index
-from graph_mcp.init_cmd import scaffold_project
-from graph_mcp.mcp_server import build_server
-from graph_mcp.mcp_server.db_queries import vec_table_exists
+from copilot_graph_spec.config import resolve_path
+from copilot_graph_spec.db import connect
+from copilot_graph_spec.embeddings import embed_nodes, get_embedder
+from copilot_graph_spec.indexer import build_index, incremental_index
+from copilot_graph_spec.init_cmd import scaffold_project
+from copilot_graph_spec.mcp_server import build_server
+from copilot_graph_spec.mcp_server.db_queries import vec_table_exists
 
 
 @click.group()
 @click.version_option(package_name="copilot-graph-spec")
 def main() -> None:
-    """graph-mcp command line interface."""
+    """copilot-graph-spec command line interface."""
 
 
 @main.command("index")
@@ -106,14 +106,14 @@ def watch_command(root: str | None, db_path: str | None, interval: float) -> Non
     type=click.Path(exists=True, file_okay=False),
     default=None,
     help="Repo root that graph_read_span reads files relative to "
-    "(default: '.graph-mcp.toml' if present, else parent of graph_mcp/).",
+    "(default: '.copilot-graph-spec.toml' if present, else parent of copilot_graph_spec/).",
 )
 @click.option(
     "--db",
     "db_path",
     type=click.Path(),
     default=None,
-    help="Path to the SQLite graph database built by `graph-mcp index`.",
+    help="Path to the SQLite graph database built by `copilot-graph-spec index`.",
 )
 def serve_command(repo_root: str | None, db_path: str | None) -> None:
     """Run the graph MCP server over stdio."""

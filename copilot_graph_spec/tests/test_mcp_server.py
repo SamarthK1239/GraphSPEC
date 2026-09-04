@@ -9,10 +9,10 @@ from pathlib import Path
 
 import pytest
 
-from graph_mcp.db import connect
-from graph_mcp.mcp_server import db_queries
-from graph_mcp.mcp_server.read_span import read_span
-from graph_mcp.mcp_server.server import build_server
+from copilot_graph_spec.db import connect
+from copilot_graph_spec.mcp_server import db_queries
+from copilot_graph_spec.mcp_server.read_span import read_span
+from copilot_graph_spec.mcp_server.server import build_server
 
 
 def _insert_node(conn: sqlite3.Connection, **kwargs) -> None:

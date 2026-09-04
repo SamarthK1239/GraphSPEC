@@ -1,4 +1,4 @@
-"""Scaffolds the GraphSPEC spec-driven workflow into a target repo (`graph-mcp init`)."""
+"""Scaffolds the GraphSPEC spec-driven workflow into a target repo (`copilot-graph-spec init`)."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from importlib.resources.abc import Traversable
 from pathlib import Path
 
 _GITIGNORE_SNIPPET_NAME = "gitignore-snippet.txt"
-_CONFIG_TEMPLATE_NAME = "graph-mcp.toml.tmpl"
+_CONFIG_TEMPLATE_NAME = "copilot-graph-spec.toml.tmpl"
 
 
 def _iter_files(base: Traversable, prefix: str = "") -> list[tuple[str, Traversable]]:
@@ -39,10 +39,10 @@ def scaffold_project(target: Path, *, force: bool = False) -> list[tuple[str, st
 
     Existing files are left untouched unless `force` is set. `gitignore-snippet.txt`
     is appended into `target/.gitignore` instead of overwriting it, and
-    `graph-mcp.toml.tmpl` is written out as `.graph-mcp.toml`.
+    `copilot-graph-spec.toml.tmpl` is written out as `.copilot-graph-spec.toml`.
     """
     target = target.resolve()
-    scaffold_root = files("graph_mcp") / "scaffold"
+    scaffold_root = files("copilot_graph_spec") / "scaffold"
     report: list[tuple[str, str]] = []
 
     with as_file(scaffold_root) as scaffold_dir:
@@ -51,7 +51,7 @@ def scaffold_project(target: Path, *, force: bool = False) -> list[tuple[str, st
                 report.append((".gitignore", _append_gitignore(target, resource.read_text())))
                 continue
 
-            dest_rel = ".graph-mcp.toml" if rel_path == _CONFIG_TEMPLATE_NAME else rel_path
+            dest_rel = ".copilot-graph-spec.toml" if rel_path == _CONFIG_TEMPLATE_NAME else rel_path
             dest = target / dest_rel
             if dest.exists() and not force:
                 report.append((dest_rel, "skipped"))

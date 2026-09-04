@@ -11,7 +11,7 @@ import sqlite3
 
 import sqlite_vec
 
-from graph_mcp.embeddings.base import Embedder
+from copilot_graph_spec.embeddings.base import Embedder
 
 RRF_K = 60
 
@@ -96,7 +96,7 @@ def hybrid_search(conn: sqlite3.Connection, query: str, embedder: Embedder | Non
     """FTS5 lexical search, fused via RRF with vector similarity when embeddings are available.
 
     Falls back to lexical-only results when `embedder` is None or `vec_nodes`
-    hasn't been populated yet (i.e. before `graph-mcp embed` has run).
+    hasn't been populated yet (i.e. before `copilot-graph-spec embed` has run).
     """
     limit = max(1, min(limit, 100))
     pool_size = max(limit * 3, 50)

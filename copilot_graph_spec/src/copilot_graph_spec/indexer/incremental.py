@@ -12,12 +12,12 @@ import hashlib
 import sqlite3
 from pathlib import Path
 
-from graph_mcp.db import connect
-from graph_mcp.indexer.core import IndexStats, write_records
-from graph_mcp.indexer.extractor import extract_file
-from graph_mcp.indexer.languages import detect_language
-from graph_mcp.indexer.spec_parser import extract_spec_features
-from graph_mcp.indexer.walker import walk_repo
+from copilot_graph_spec.db import connect
+from copilot_graph_spec.indexer.core import IndexStats, write_records
+from copilot_graph_spec.indexer.extractor import extract_file
+from copilot_graph_spec.indexer.languages import detect_language
+from copilot_graph_spec.indexer.spec_parser import extract_spec_features
+from copilot_graph_spec.indexer.walker import walk_repo
 
 
 def _hash_bytes(data: bytes) -> str:

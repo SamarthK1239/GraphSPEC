@@ -113,5 +113,38 @@ All 9 phases are complete as of this writing.
   `PYPI_API_TOKEN`/trusted-publisher secret) is a manual one-time step
   `release.yml` depends on but can't do on its own. The distribution is
   named `copilot-graph-spec` on PyPI (`graph-mcp` and `graph-spec` were
-  both already taken); the installed console script/CLI command remains
-  `graph-mcp`.
+  both already taken); the installed console script/CLI command originally
+  remained `graph-mcp` — see Phase 11 below, which renamed it too.
+
+## Phase 11: `graph-mcp` → `copilot-graph-spec` full rename
+
+`graph-mcp` collided in name with Microsoft's own `graph-mcp` MCP server,
+causing confusion. Renamed everywhere to `copilot-graph-spec`, matching the
+PyPI distribution name:
+
+- Top-level project dir `graph_mcp/` → `copilot_graph_spec/`, and the
+  Python package `graph_mcp` → `copilot_graph_spec` (all imports, the
+  `[project.scripts]` entry point, `[tool.hatch.build.targets.wheel]`
+  `packages` path).
+- CLI console script `graph-mcp` → `copilot-graph-spec` (e.g.
+  `copilot-graph-spec index .`).
+- MCP server registration name (`.vscode/mcp.json`, both this repo's and
+  the scaffolded one) and agent tool-grant tags (`graph-mcp/*` →
+  `copilot-graph-spec/*` in every `.agent.md`).
+- Config file `.graph-mcp.toml` → `.copilot-graph-spec.toml` (including its
+  `[graph-mcp]` → `[copilot-graph-spec]` TOML table, the scaffold template
+  `graph-mcp.toml.tmpl` → `copilot-graph-spec.toml.tmpl`, and this repo's
+  own dogfooded config file).
+- Env vars `GRAPH_MCP_EMBED_BACKEND`/`GRAPH_MCP_EMBED_MODEL` →
+  `COPILOT_GRAPH_SPEC_EMBED_BACKEND`/`COPILOT_GRAPH_SPEC_EMBED_MODEL`.
+- All prose mentions across README, USER_GUIDE, CONTRIBUTING,
+  copilot-instructions, and CI/release workflow `working-directory`/
+  `packages-dir` paths.
+
+Left untouched intentionally: the `GraphSPEC` project/repo name itself, the
+individual `graph_*` MCP tool names (`graph_search`, `graph_read_span`,
+etc. — generic enough not to collide with Microsoft's server), and the
+historical record above (including `spec/features/cli-version-flag/*.md`,
+which still references the old `graph_mcp/` paths as they were at the time
+that example was built).
+

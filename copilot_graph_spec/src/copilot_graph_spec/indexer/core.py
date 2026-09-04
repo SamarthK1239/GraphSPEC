@@ -7,12 +7,12 @@ import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
 
-from graph_mcp.db import connect, reset
-from graph_mcp.indexer.extractor import extract_file
-from graph_mcp.indexer.languages import detect_language
-from graph_mcp.indexer.models import EdgeRecord, NodeRecord
-from graph_mcp.indexer.spec_parser import extract_spec_features
-from graph_mcp.indexer.walker import walk_repo
+from copilot_graph_spec.db import connect, reset
+from copilot_graph_spec.indexer.extractor import extract_file
+from copilot_graph_spec.indexer.languages import detect_language
+from copilot_graph_spec.indexer.models import EdgeRecord, NodeRecord
+from copilot_graph_spec.indexer.spec_parser import extract_spec_features
+from copilot_graph_spec.indexer.walker import walk_repo
 
 
 @dataclass

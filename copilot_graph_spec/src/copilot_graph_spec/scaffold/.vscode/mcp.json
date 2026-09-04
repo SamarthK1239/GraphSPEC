@@ -1,8 +1,8 @@
 {
   "servers": {
-    "graph-mcp": {
+    "copilot-graph-spec": {
       "type": "stdio",
-      "command": "graph-mcp",
+      "command": "copilot-graph-spec",
       "args": ["serve"],
       "cwd": "${workspaceFolder}"
     }

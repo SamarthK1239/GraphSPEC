@@ -8,10 +8,10 @@ from __future__ import annotations
 import sqlite3
 from pathlib import Path
 
-from graph_mcp.db import connect
-from graph_mcp.indexer.core import build_index
-from graph_mcp.indexer.spec_parser import extract_spec_features
-from graph_mcp.mcp_server import db_queries
+from copilot_graph_spec.db import connect
+from copilot_graph_spec.indexer.core import build_index
+from copilot_graph_spec.indexer.spec_parser import extract_spec_features
+from copilot_graph_spec.mcp_server import db_queries
 
 
 def _write_feature(spec_root: Path, slug: str, spec_md: str, plan_md: str, tasks_md: str) -> None:

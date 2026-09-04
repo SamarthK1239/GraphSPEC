@@ -1,10 +1,10 @@
 {
   "servers": {
-    "graph-mcp": {
+    "copilot-graph-spec": {
       "type": "stdio",
       "command": "uv",
-      "args": ["run", "graph-mcp", "serve"],
-      "cwd": "${workspaceFolder}/graph_mcp"
+      "args": ["run", "copilot-graph-spec", "serve"],
+      "cwd": "${workspaceFolder}/copilot_graph_spec"
     }
   }
 }

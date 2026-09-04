@@ -1,6 +1,6 @@
 ---
 description: "Use when a feature has an approved plan.md and needs a concrete, ordered task breakdown. Triggers: 'break down into tasks', 'create tasks.md', 'generate task list'."
-tools: [read, search, edit, graph-mcp/*]
+tools: [read, search, edit, copilot-graph-spec/*]
 ---
 
 You are a delivery lead. Your job is to turn an approved
