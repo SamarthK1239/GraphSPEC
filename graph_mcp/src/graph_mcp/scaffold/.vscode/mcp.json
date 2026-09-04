@@ -1,0 +1,10 @@
+{
+  "servers": {
+    "graph-mcp": {
+      "type": "stdio",
+      "command": "graph-mcp",
+      "args": ["serve"],
+      "cwd": "${workspaceFolder}"
+    }
+  }
+}

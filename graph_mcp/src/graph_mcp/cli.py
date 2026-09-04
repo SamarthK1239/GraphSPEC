@@ -5,30 +5,34 @@ from pathlib import Path
 
 import click
 
+from graph_mcp.config import resolve_path
 from graph_mcp.db import connect
 from graph_mcp.embeddings import embed_nodes, get_embedder
 from graph_mcp.indexer import build_index, incremental_index
+from graph_mcp.init_cmd import scaffold_project
 from graph_mcp.mcp_server import build_server
 from graph_mcp.mcp_server.db_queries import vec_table_exists
 
 
 @click.group()
-@click.version_option(package_name="graph-mcp")
+@click.version_option(package_name="graph-spec")
 def main() -> None:
     """graph-mcp command line interface."""
 
 
 @main.command("index")
-@click.argument("root", type=click.Path(exists=True, file_okay=False), default=".")
-@click.option("--db", "db_path", type=click.Path(), default=".graph/graph.db", help="Path to the SQLite graph database.")
+@click.argument("root", type=click.Path(exists=True, file_okay=False), default=None, required=False)
+@click.option("--db", "db_path", type=click.Path(), default=None, help="Path to the SQLite graph database.")
 @click.option(
     "--incremental",
     is_flag=True,
     default=False,
     help="Only re-parse files whose content changed since the last index, instead of a full rebuild.",
 )
-def index_command(root: str, db_path: str, incremental: bool) -> None:
+def index_command(root: str | None, db_path: str | None, incremental: bool) -> None:
     """Walk ROOT, parse recognized source files, and (re)build the graph database."""
+    root = resolve_path("root", root, ".")
+    db_path = resolve_path("db", db_path, ".graph/graph.db")
     stats = incremental_index(root, db_path) if incremental else build_index(root, db_path)
     click.echo(
         f"Indexed {stats.files_indexed} files ({stats.files_skipped} skipped, {stats.files_removed} removed) "
@@ -37,7 +41,7 @@ def index_command(root: str, db_path: str, incremental: bool) -> None:
 
 
 @main.command("embed")
-@click.option("--db", "db_path", type=click.Path(), default=".graph/graph.db", help="Path to the SQLite graph database.")
+@click.option("--db", "db_path", type=click.Path(), default=None, help="Path to the SQLite graph database.")
 @click.option("--backend", default=None, help="Embedder backend: fastembed (default) or sentence-transformers.")
 @click.option("--model", "model_name", default=None, help="Override the embedding model name.")
 @click.option(
@@ -46,8 +50,9 @@ def index_command(root: str, db_path: str, incremental: bool) -> None:
     default=False,
     help="Recompute embeddings for every node, not just ones missing an embedding.",
 )
-def embed_command(db_path: str, backend: str | None, model_name: str | None, force: bool) -> None:
+def embed_command(db_path: str | None, backend: str | None, model_name: str | None, force: bool) -> None:
     """Compute embeddings for nodes lacking one (or all, with --force) and store them in vec_nodes."""
+    db_path = resolve_path("db", db_path, ".graph/graph.db")
     embedder = get_embedder(backend, model_name)
     conn = connect(db_path)
     try:
@@ -58,11 +63,13 @@ def embed_command(db_path: str, backend: str | None, model_name: str | None, for
 
 
 @main.command("watch")
-@click.argument("root", type=click.Path(exists=True, file_okay=False), default=".")
-@click.option("--db", "db_path", type=click.Path(), default=".graph/graph.db", help="Path to the SQLite graph database.")
+@click.argument("root", type=click.Path(exists=True, file_okay=False), default=None, required=False)
+@click.option("--db", "db_path", type=click.Path(), default=None, help="Path to the SQLite graph database.")
 @click.option("--interval", type=float, default=2.0, help="Polling interval in seconds.")
-def watch_command(root: str, db_path: str, interval: float) -> None:
+def watch_command(root: str | None, db_path: str | None, interval: float) -> None:
     """Poll ROOT and incrementally re-index (and re-embed, if embeddings exist) on change."""
+    root = resolve_path("root", root, ".")
+    db_path = resolve_path("db", db_path, ".graph/graph.db")
     embedder_cache: list = []
 
     def cached_embedder():
@@ -97,20 +104,33 @@ def watch_command(root: str, db_path: str, interval: float) -> None:
     "--root",
     "repo_root",
     type=click.Path(exists=True, file_okay=False),
-    default="..",
-    help="Repo root that graph_read_span reads files relative to (default: parent of graph_mcp/).",
+    default=None,
+    help="Repo root that graph_read_span reads files relative to "
+    "(default: '.graph-mcp.toml' if present, else parent of graph_mcp/).",
 )
 @click.option(
     "--db",
     "db_path",
     type=click.Path(),
-    default="../.graph/graph.db",
+    default=None,
     help="Path to the SQLite graph database built by `graph-mcp index`.",
 )
-def serve_command(repo_root: str, db_path: str) -> None:
+def serve_command(repo_root: str | None, db_path: str | None) -> None:
     """Run the graph MCP server over stdio."""
+    repo_root = resolve_path("root", repo_root, "..")
+    db_path = resolve_path("db", db_path, "../.graph/graph.db")
     server = build_server(Path(db_path).resolve(), Path(repo_root).resolve())
     server.run(transport="stdio")
+
+
+@main.command("init")
+@click.argument("target", type=click.Path(file_okay=False), default=".")
+@click.option("--force", is_flag=True, default=False, help="Overwrite files that already exist in TARGET.")
+def init_command(target: str, force: bool) -> None:
+    """Scaffold the GraphSPEC spec-driven workflow (agents, prompts, spec templates, MCP config) into TARGET."""
+    report = scaffold_project(Path(target), force=force)
+    for rel_path, status in report:
+        click.echo(f"{status:9} {rel_path}")
 
 
 if __name__ == "__main__":

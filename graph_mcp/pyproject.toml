@@ -1,8 +1,18 @@
 [project]
-name = "graph-mcp"
+name = "graph-spec"
 version = "0.1.0"
 description = "Python MCP server serving a unified code + spec graph for context-efficient agent workflows"
+license = "MIT"
 requires-python = ">=3.11"
+authors = [{ name = "Samarth Kulkarni" }]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: OS Independent",
+]
 dependencies = [
     "mcp",
     "tree-sitter",
@@ -11,6 +21,11 @@ dependencies = [
     "fastembed",
     "sqlite-vec",
 ]
+
+[project.urls]
+Homepage = "https://github.com/SamarthK1239/GraphSPEC"
+Repository = "https://github.com/SamarthK1239/GraphSPEC"
+Issues = "https://github.com/SamarthK1239/GraphSPEC/issues"
 
 [project.optional-dependencies]
 torch = [

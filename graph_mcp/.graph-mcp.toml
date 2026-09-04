@@ -1,0 +1,4 @@
+# Dogfoods graph-mcp's own `.graph-mcp.toml` discovery from graph_mcp/'s cwd.
+[graph-mcp]
+root = ".."
+db = "../.graph/graph.db"

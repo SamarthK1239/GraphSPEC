@@ -1,6 +1,6 @@
 # GraphSPEC — Planning & Design History
 
-> Status: v1 implemented (Phases 0–8 complete) • Last updated: 2026-09-03
+> Status: v1 implemented (Phases 0–9 complete) • Last updated: 2026-09-03
 
 This document captures the locked design decisions, phased build history, and
 verification methodology behind [README.md](README.md). It's a historical
@@ -54,8 +54,17 @@ record of *why* things are built the way they are, not day-to-day usage docs.
    mode, re-embed only changed nodes. *(depends on 1, 3)*
 8. **Validation + docs** — pytest, token-budget benchmark, e2e toy feature.
    *(depends on all)*
+9. **Shareability hardening** — `LICENSE` (MIT), CI (`ci.yml`: ubuntu/macos/
+   windows x Python 3.11-3.13) + release-on-tag (`release.yml`, PyPI),
+   `.graph-mcp.toml` config-file discovery decoupling `index`/`embed`/
+   `watch`/`serve` from the hardcoded `graph_mcp/`-is-one-level-under-root
+   layout, and a `graph-mcp init <target>` command that scaffolds the SDD
+   workflow (agents/prompts/instructions/spec templates/mcp.json) into any
+   other repo so `graph-mcp` can be adopted as an installed package instead
+   of vendored monorepo code. *(depends on all; addresses adoption barriers
+   found via a shareability review)*
 
-All 8 phases are complete as of this writing.
+All 9 phases are complete as of this writing.
 
 ## Verification
 
@@ -86,7 +95,9 @@ All 8 phases are complete as of this writing.
 - **Included:** SDD workflow files, unified graph, MCP server, CLI, local
   embeddings/hybrid search, incremental indexing, traceability, benchmarks.
 - **Excluded (v1):** heavyweight graph DB (Neo4j/Kùzu), cross-repo/monorepo
-  federation, CI automation, GitHub Issues sync — noted as future work.
+  federation, GitHub Issues sync, a runtime language-plugin system (adding a
+  language is still a code-level edit to `languages.py`) — noted as future
+  work.
 
 ## Known Follow-ups
 
@@ -98,3 +109,8 @@ All 8 phases are complete as of this writing.
   bullet's first line before matching `REQ-`/`PLAN-`/`TASK-` tags — this
   was a real bug found during the Phase 8 E2E run (a wrapped `[derives:
   ...]` tag was silently dropped) and is now covered by a regression test.
+- Actually publishing to PyPI (creating the account, adding a
+  `PYPI_API_TOKEN`/trusted-publisher secret) is a manual one-time step
+  `release.yml` depends on but can't do on its own. The distribution is
+  named `graph-spec` on PyPI (the `graph-mcp` name was already taken); the
+  installed console script/CLI command remains `graph-mcp`.
