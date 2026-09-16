@@ -17,6 +17,13 @@ def load_vec_extension(conn: sqlite3.Connection) -> None:
     conn.enable_load_extension(False)
 
 
+def _ensure_doc_column(conn: sqlite3.Connection) -> None:
+    """Retrofit `nodes.doc` onto a pre-existing DB (CREATE TABLE IF NOT EXISTS won't add it)."""
+    columns = {row["name"] for row in conn.execute("PRAGMA table_info(nodes)")}
+    if "doc" not in columns:
+        conn.execute("ALTER TABLE nodes ADD COLUMN doc TEXT")
+
+
 def connect(db_path: str | Path) -> sqlite3.Connection:
     """Open (creating parent dirs if needed) a connection with the schema applied."""
     path = Path(db_path)
@@ -25,6 +32,7 @@ def connect(db_path: str | Path) -> sqlite3.Connection:
     conn.row_factory = sqlite3.Row
     load_vec_extension(conn)
     conn.executescript(SCHEMA)
+    _ensure_doc_column(conn)
     return conn
 
 

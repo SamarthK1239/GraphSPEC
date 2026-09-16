@@ -18,6 +18,34 @@ from tree_sitter_language_pack import get_parser
 from copilot_graph_spec.indexer.languages import LANGUAGES, LanguageConfig
 from copilot_graph_spec.indexer.models import EdgeRecord, NodeRecord
 
+DOC_MAX_LEN = 200
+
+
+def _extract_python_docstring(body_node: Any, source: bytes) -> str | None:
+    """First line of a Python function/class docstring, or None if there isn't one."""
+    if body_node is None or not body_node.children:
+        return None
+    first = body_node.children[0]
+    # Depending on grammar version, a bare string statement may or may not be
+    # wrapped in an expression_statement node -- handle both shapes.
+    if first.type == "expression_statement" and first.children:
+        first = first.children[0]
+    if first.type != "string":
+        return None
+
+    text = first.text.decode("utf-8", errors="replace").strip()
+    i = 0
+    while i < len(text) and text[i] not in ('"', "'"):
+        i += 1
+    body = text[i:]
+    for quote in ('"""', "'''", '"', "'"):
+        if body.startswith(quote) and body.endswith(quote) and len(body) >= 2 * len(quote):
+            body = body[len(quote) : -len(quote)]
+            break
+
+    first_line = next((ln.strip() for ln in body.splitlines() if ln.strip()), None)
+    return first_line[:DOC_MAX_LEN] if first_line else None
+
 
 def extract_file(relpath: str, source: bytes, language_key: str) -> tuple[list[NodeRecord], list[EdgeRecord]]:
     cfg = LANGUAGES[language_key]
@@ -60,6 +88,7 @@ def extract_file(relpath: str, source: bytes, language_key: str) -> tuple[list[N
                     .strip()
                 )
                 symbol_id = f"symbol:{relpath}:{qualified}:{child.start_point[0] + 1}"
+                doc = _extract_python_docstring(body_node, source) if language_key == "python" else None
                 nodes.append(
                     NodeRecord(
                         id=symbol_id,
@@ -71,6 +100,7 @@ def extract_file(relpath: str, source: bytes, language_key: str) -> tuple[list[N
                         line_end=child.end_point[0] + 1,
                         hash=hashlib.sha256(source[child.start_byte : child.end_byte]).hexdigest(),
                         meta=json.dumps({"language": language_key, "kind": "class" if is_class else "function"}),
+                        doc=doc,
                     )
                 )
                 edges.append(EdgeRecord(parent_id, symbol_id, "contains"))

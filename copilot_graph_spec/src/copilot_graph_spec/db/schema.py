@@ -13,7 +13,8 @@ CREATE TABLE IF NOT EXISTS nodes (
     line_start INTEGER,
     line_end INTEGER,
     hash TEXT,
-    meta TEXT
+    meta TEXT,
+    doc TEXT
 );
 
 CREATE TABLE IF NOT EXISTS edges (

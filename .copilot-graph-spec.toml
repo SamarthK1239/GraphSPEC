@@ -1,0 +1,4 @@
+# Written by `copilot-graph-spec init`. Paths are resolved relative to this file's directory.
+[copilot-graph-spec]
+root = "."
+db = ".graph/graph.db"

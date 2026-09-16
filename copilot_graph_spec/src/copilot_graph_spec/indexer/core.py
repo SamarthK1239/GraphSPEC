@@ -28,13 +28,24 @@ def write_records(conn: sqlite3.Connection, nodes: list[NodeRecord], edges: list
     for node in nodes:
         conn.execute(
             "INSERT OR REPLACE INTO nodes "
-            "(id, type, path, name, signature, line_start, line_end, hash, meta) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            (node.id, node.type, node.path, node.name, node.signature, node.line_start, node.line_end, node.hash, node.meta),
+            "(id, type, path, name, signature, line_start, line_end, hash, meta, doc) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (
+                node.id,
+                node.type,
+                node.path,
+                node.name,
+                node.signature,
+                node.line_start,
+                node.line_end,
+                node.hash,
+                node.meta,
+                node.doc,
+            ),
         )
         conn.execute(
             "INSERT INTO nodes_fts (node_id, name, signature, doc) VALUES (?, ?, ?, ?)",
-            (node.id, node.name, node.signature, None),
+            (node.id, node.name, node.signature, node.doc),
         )
     for edge in edges:
         conn.execute(

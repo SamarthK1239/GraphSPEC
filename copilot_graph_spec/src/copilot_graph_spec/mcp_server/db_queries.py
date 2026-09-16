@@ -28,6 +28,11 @@ EDGE_TYPES = {
 TRACE_EDGE_TYPES = {"derives", "implements", "covers", "depends_on"}
 IMPACT_EDGE_TYPES = {"calls", "imports", "references", "depends_on", "implements", "derives", "covers"}
 
+# Keys that make up a "node" shape, as opposed to wrapper keys tools add
+# around nodes (e.g. neighbors' edge_type, impact's depth) which always
+# survive projection since they carry relationship info, not node body data.
+NODE_FIELDS = {"id", "type", "path", "name", "signature", "line_start", "line_end", "meta", "doc"}
+
 
 def _row_to_node(row: sqlite3.Row) -> dict:
     meta = row["meta"]
@@ -40,7 +45,24 @@ def _row_to_node(row: sqlite3.Row) -> dict:
         "line_start": row["line_start"],
         "line_end": row["line_end"],
         "meta": json.loads(meta) if meta else {},
+        "doc": row["doc"],
     }
+
+
+def project(item: dict, fields: list[str] | None) -> dict:
+    """Trim a node dict down to just the requested NODE_FIELDS, keeping any
+    non-node wrapper keys (edge_type, depth, ...) untouched. `fields=None`
+    returns the item unchanged (default, fully-populated behavior)."""
+    if not fields:
+        return item
+    keep = set(fields) & NODE_FIELDS
+    return {k: v for k, v in item.items() if k in keep or k not in NODE_FIELDS}
+
+
+def project_list(items: list[dict], fields: list[str] | None) -> list[dict]:
+    if not fields:
+        return items
+    return [project(i, fields) for i in items]
 
 
 def _fts_query(query: str) -> str:
@@ -112,10 +134,11 @@ def hybrid_search(conn: sqlite3.Connection, query: str, embedder: Embedder | Non
     return [n for n in nodes if n is not None]
 
 
-def file_outline(conn: sqlite3.Connection, path: str) -> list[dict]:
+def file_outline(conn: sqlite3.Connection, path: str, limit: int = 300) -> list[dict]:
+    limit = max(1, min(limit, 1000))
     rows = conn.execute(
-        "SELECT * FROM nodes WHERE path = ? AND type = 'symbol' ORDER BY line_start",
-        (path,),
+        "SELECT * FROM nodes WHERE path = ? AND type = 'symbol' ORDER BY line_start LIMIT ?",
+        (path, limit),
     ).fetchall()
     return [_row_to_node(r) for r in rows]
 
@@ -130,8 +153,10 @@ def neighbors(
     node_id: str,
     direction: str = "both",
     edge_types: list[str] | None = None,
+    limit: int = 200,
 ) -> dict:
     types = [t for t in (edge_types or []) if t in EDGE_TYPES] or None
+    limit = max(1, min(limit, 1000))
     result: dict[str, list[dict]] = {"outgoing": [], "incoming": []}
 
     if direction in ("out", "both"):
@@ -140,6 +165,8 @@ def neighbors(
         if types:
             q += f" AND e.type IN ({','.join('?' * len(types))})"
             params.extend(types)
+        q += " LIMIT ?"
+        params.append(limit)
         rows = conn.execute(q, params).fetchall()
         result["outgoing"] = [{"edge_type": r["edge_type"], **_row_to_node(r)} for r in rows]
 
@@ -149,21 +176,24 @@ def neighbors(
         if types:
             q += f" AND e.type IN ({','.join('?' * len(types))})"
             params.extend(types)
+        q += " LIMIT ?"
+        params.append(limit)
         rows = conn.execute(q, params).fetchall()
         result["incoming"] = [{"edge_type": r["edge_type"], **_row_to_node(r)} for r in rows]
 
     return result
 
 
-def impact(conn: sqlite3.Connection, node_id: str, max_depth: int = 2) -> list[dict]:
+def impact(conn: sqlite3.Connection, node_id: str, max_depth: int = 2, max_results: int = 300) -> list[dict]:
     """Blast radius: nodes that (transitively) depend on/call/import node_id."""
     max_depth = max(1, min(max_depth, 5))
+    max_results = max(1, min(max_results, 2000))
     visited = {node_id}
     frontier = [node_id]
     results: list[dict] = []
 
     for depth in range(1, max_depth + 1):
-        if not frontier:
+        if not frontier or len(results) >= max_results:
             break
         placeholders = ",".join("?" * len(frontier))
         edge_placeholders = ",".join("?" * len(IMPACT_EDGE_TYPES))
@@ -177,6 +207,8 @@ def impact(conn: sqlite3.Connection, node_id: str, max_depth: int = 2) -> list[d
             if row["id"] in visited:
                 continue
             visited.add(row["id"])
+            if len(results) >= max_results:
+                break
             results.append({**_row_to_node(row), "depth": depth})
             next_frontier.append(row["id"])
         frontier = next_frontier
@@ -222,7 +254,7 @@ def subgraph(conn: sqlite3.Connection, seed_ids: list[str], max_nodes: int = 50,
     }
 
 
-def trace(conn: sqlite3.Connection, node_id: str | None = None) -> dict:
+def trace(conn: sqlite3.Connection, node_id: str | None = None, limit: int = 300) -> dict:
     """Spec <-> requirement <-> task <-> symbol traceability + coverage gaps.
 
     With `node_id`: returns its derives/implements/covers/depends_on neighbors.
@@ -231,11 +263,14 @@ def trace(conn: sqlite3.Connection, node_id: str | None = None) -> dict:
     since they're always the *source* of covers/implements edges, never the
     target -- a task with no incoming edge isn't a gap, it's expected.
     """
+    limit = max(1, min(limit, 1000))
     if node_id is not None:
-        return neighbors(conn, node_id, direction="both", edge_types=list(TRACE_EDGE_TYPES))
+        return neighbors(conn, node_id, direction="both", edge_types=list(TRACE_EDGE_TYPES), limit=limit)
 
     rows = conn.execute(
         "SELECT * FROM nodes WHERE type IN ('requirement', 'plan_item') "
-        "AND id NOT IN (SELECT dst FROM edges WHERE type IN ('covers', 'implements', 'derives'))"
+        "AND id NOT IN (SELECT dst FROM edges WHERE type IN ('covers', 'implements', 'derives')) "
+        "LIMIT ?",
+        (limit,),
     ).fetchall()
     return {"coverage_gaps": [_row_to_node(r) for r in rows]}

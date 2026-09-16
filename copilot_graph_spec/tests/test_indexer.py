@@ -58,6 +58,31 @@ def test_contains_and_imports_edges() -> None:
     assert "external:foo.bar" in imports
 
 
+def test_extract_python_docstring() -> None:
+    source = b'def helper():\n    """Returns one.\n\n    More detail here.\n    """\n    return 1\n'
+    nodes, edges = extract_file("mod.py", source, "python")
+
+    helper = next(n for n in nodes if n.name == "helper")
+    assert helper.doc == "Returns one."
+
+
+def test_extract_python_docstring_absent() -> None:
+    source = b"def helper():\n    return 1\n"
+    nodes, edges = extract_file("mod.py", source, "python")
+
+    helper = next(n for n in nodes if n.name == "helper")
+    assert helper.doc is None
+
+
+def test_javascript_functions_have_no_docstring() -> None:
+    # Doc extraction is Python-only for now.
+    source = b"function helper() {\n  return 1;\n}\n"
+    nodes, edges = extract_file("mod.js", source, "javascript")
+
+    helper = next(n for n in nodes if n.name == "helper")
+    assert helper.doc is None
+
+
 def test_build_index_writes_nodes_edges_and_fts(tmp_path: Path) -> None:
     repo = tmp_path / "repo"
     repo.mkdir()

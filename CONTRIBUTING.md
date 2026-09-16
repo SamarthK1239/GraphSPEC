@@ -28,12 +28,7 @@ ubuntu/macos/windows across Python 3.11–3.13 on every push/PR to `main`.
 3. [.github/workflows/release.yml](.github/workflows/release.yml) builds and
    publishes to PyPI via `pypa/gh-action-pypi-publish`. This requires either:
    - PyPI Trusted Publishing configured for this repo (no secret needed —
-     uses the `id-token: write` permission already set in the workflow), or
-   - a `PYPI_API_TOKEN` repository secret, with the workflow's publish step
-     updated to pass it explicitly.
-
-   Both require repo/PyPI admin access to set up once; this is not something
-   that can be automated from within the repo itself.
+     uses the `id-token: write` permission already set in the workflow)
 
 ## Adding a language to the indexer
 

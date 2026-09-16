@@ -26,16 +26,17 @@ def _insert_node(conn: sqlite3.Connection, **kwargs) -> None:
         "line_end": None,
         "hash": None,
         "meta": "{}",
+        "doc": None,
     }
     defaults.update(kwargs)
     conn.execute(
-        "INSERT INTO nodes (id, type, path, name, signature, line_start, line_end, hash, meta) "
-        "VALUES (:id, :type, :path, :name, :signature, :line_start, :line_end, :hash, :meta)",
+        "INSERT INTO nodes (id, type, path, name, signature, line_start, line_end, hash, meta, doc) "
+        "VALUES (:id, :type, :path, :name, :signature, :line_start, :line_end, :hash, :meta, :doc)",
         defaults,
     )
     conn.execute(
         "INSERT INTO nodes_fts (node_id, name, signature, doc) VALUES (?, ?, ?, ?)",
-        (defaults["id"], defaults["name"], defaults["signature"], None),
+        (defaults["id"], defaults["name"], defaults["signature"], defaults["doc"]),
     )
 
 
@@ -108,6 +109,16 @@ def test_impact_bfs(db_path: Path) -> None:
     assert any(n["id"] == "symbol:a.py:bar:4" and n["depth"] == 1 for n in impacted)
 
 
+def test_impact_respects_max_results(db_path: Path) -> None:
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    _insert_node(conn, id="symbol:a.py:baz:8", path="a.py", name="baz", line_start=8, line_end=9)
+    _insert_edge(conn, "symbol:a.py:baz:8", "symbol:a.py:foo:1", "calls")
+    conn.commit()
+    impacted = db_queries.impact(conn, "symbol:a.py:foo:1", max_depth=2, max_results=1)
+    assert len(impacted) == 1
+
+
 def test_subgraph_respects_max_nodes(db_path: Path) -> None:
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
@@ -131,9 +142,25 @@ def test_trace_with_node_id_returns_neighbors(db_path: Path) -> None:
     assert [n["id"] for n in result["outgoing"]] == ["requirement:covered"]
 
 
+def test_trace_coverage_gaps_respects_limit(db_path: Path) -> None:
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    result = db_queries.trace(conn, limit=1)
+    assert len(result["coverage_gaps"]) == 1
+
+
+def test_project_filters_to_requested_node_fields() -> None:
+    node = {"id": "x", "type": "symbol", "path": "a.py", "name": "foo", "depth": 1}
+    assert db_queries.project(node, ["id", "name"]) == {"id": "x", "name": "foo", "depth": 1}
+    assert db_queries.project(node, None) == node
+
+
 def test_read_span_happy_path(tmp_path: Path) -> None:
     (tmp_path / "f.py").write_text("line1\nline2\nline3\n")
-    assert read_span(tmp_path, "f.py", 2, 3) == "line2\nline3"
+    result = read_span(tmp_path, "f.py", 2, 3)
+    assert result["text"] == "line2\nline3"
+    assert result["truncated"] is False
+    assert result["next_line_start"] is None
 
 
 def test_read_span_rejects_path_traversal(tmp_path: Path) -> None:
@@ -144,11 +171,14 @@ def test_read_span_rejects_path_traversal(tmp_path: Path) -> None:
         read_span(repo, "../secret.txt", 1, 1)
 
 
-def test_read_span_rejects_oversized_span(tmp_path: Path) -> None:
+def test_read_span_truncates_oversized_span(tmp_path: Path) -> None:
     content = "\n".join(str(i) for i in range(1000))
     (tmp_path / "big.py").write_text(content)
-    with pytest.raises(ValueError):
-        read_span(tmp_path, "big.py", 1, 999)
+    result = read_span(tmp_path, "big.py", 1, 999)
+    assert result["truncated"] is True
+    assert result["line_end"] == 500
+    assert result["next_line_start"] == 501
+    assert len(result["text"].splitlines()) == 500
 
 
 def test_mcp_server_graph_search_tool(db_path: Path, tmp_path: Path) -> None:
@@ -161,6 +191,30 @@ def test_mcp_server_graph_search_tool(db_path: Path, tmp_path: Path) -> None:
     assert result.is_error is False
     payload = json.loads(result.content[0].text)
     assert any(r["id"] == "symbol:a.py:foo:1" for r in payload["results"])
+
+
+def test_mcp_server_graph_search_tool_fields_projection(db_path: Path, tmp_path: Path) -> None:
+    server = build_server(db_path, tmp_path)
+
+    async def run():
+        return await server.call_tool("graph_search", {"query": "foo", "fields": ["id", "name"]})
+
+    result = asyncio.run(run())
+    payload = json.loads(result.content[0].text)
+    match = next(r for r in payload["results"] if r["id"] == "symbol:a.py:foo:1")
+    assert set(match.keys()) == {"id", "name"}
+
+
+def test_mcp_server_graph_file_outline_reports_truncation(db_path: Path, tmp_path: Path) -> None:
+    server = build_server(db_path, tmp_path)
+
+    async def run():
+        return await server.call_tool("graph_file_outline", {"path": "a.py", "limit": 1})
+
+    result = asyncio.run(run())
+    payload = json.loads(result.content[0].text)
+    assert len(payload["symbols"]) == 1
+    assert payload["truncated"] is True
 
 
 def test_mcp_server_graph_read_span_tool(db_path: Path, tmp_path: Path) -> None:

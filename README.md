@@ -17,7 +17,11 @@ keeps context small on large projects.
 
 - **8 `graph_*` MCP tools** for pointer-based code + spec exploration
   (search, outline, symbol lookup, neighbors, impact/blast-radius, subgraph,
-  exact-span reads, spec↔code traceability).
+  exact-span reads, spec↔code traceability), with optional `fields=`
+  projection and `limit`/`max_results` caps to shrink responses further.
+- **Docstring-aware results** — Python symbols carry a one-line `doc` field
+  (first docstring line) so `graph_search`/`graph_get_symbol` can often
+  answer "what does this do" without a follow-up `graph_read_span` call.
 - **Hybrid search** — FTS5 lexical search, upgraded to lexical + semantic
   (sqlite-vec, fused via reciprocal-rank fusion) once embeddings are computed.
 - **Language-agnostic indexing** via tree-sitter (Python, JavaScript,
@@ -106,13 +110,17 @@ built-in default. See [copilot_graph_spec/src/copilot_graph_spec/config.py](copi
 | Tool | Purpose |
 | --- | --- |
 | `graph_search` | Hybrid lexical + semantic search over symbols/files/spec artifacts |
-| `graph_file_outline` | Symbol map of a file, no bodies |
+| `graph_file_outline` | Symbol map of a file, no bodies (bounded, reports `truncated`) |
 | `graph_get_symbol` | Signature / doc / location only |
-| `graph_neighbors` | Callers / callees / imports / references of a symbol |
-| `graph_impact` | Blast radius of changing X (powers plan/tasks) |
+| `graph_neighbors` | Callers / callees / imports / references of a symbol (bounded, reports `truncated`) |
+| `graph_impact` | Blast radius of changing X (powers plan/tasks; bounded, reports `truncated`) |
 | `graph_subgraph` | Focused, token-budgeted slice for a single task |
-| `graph_read_span` | Fetch an exact line range on demand |
-| `graph_trace` | spec ↔ requirement ↔ task ↔ symbol traceability + coverage gaps |
+| `graph_read_span` | Fetch an exact line range on demand (spans over 500 lines are truncated with a resume cursor, not rejected) |
+| `graph_trace` | spec ↔ requirement ↔ task ↔ symbol traceability + coverage gaps (bounded, reports `truncated`) |
+
+Every node-returning tool above also accepts an optional `fields=[...]` list
+to project each result down to just the requested keys — see the
+[User Guide](docs/USER_GUIDE.md#mcp-tools-reference) for full signatures.
 
 ## Architecture
 
@@ -132,7 +140,7 @@ built-in default. See [copilot_graph_spec/src/copilot_graph_spec/config.py](copi
   templates and logic behind `copilot-graph-spec init`.
 
 **SQLite schema:** `nodes(id, type, path, name, signature, line_start,
-line_end, hash, meta)` · `edges(src, dst, type)` · `nodes_fts` (FTS5 lexical
+line_end, hash, meta, doc)` · `edges(src, dst, type)` · `nodes_fts` (FTS5 lexical
 index) · `vec_nodes` (sqlite-vec embeddings) · `indexed_files` (mtime/hash
 bookkeeping for incremental indexing).
 

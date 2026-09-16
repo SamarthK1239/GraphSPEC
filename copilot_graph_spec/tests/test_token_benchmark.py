@@ -72,7 +72,7 @@ def test_graph_path_uses_far_fewer_tokens_than_reading_whole_file(tmp_path: Path
     target = search_results[0]
     assert target["name"] == "compute_widget_price"
 
-    span_text = read_span(repo, target["path"], target["line_start"], target["line_end"])
+    span_text = read_span(repo, target["path"], target["line_start"], target["line_end"])["text"]
     graph_path_tokens = _estimate_tokens(json.dumps(search_results)) + _estimate_tokens(span_text)
 
     reduction_pct = 100 * (1 - graph_path_tokens / naive_tokens)
@@ -82,3 +82,54 @@ def test_graph_path_uses_far_fewer_tokens_than_reading_whole_file(tmp_path: Path
     )
     # A real reduction should be substantial for a file this size, not marginal.
     assert reduction_pct > 70, f"expected a large token reduction, got only {reduction_pct:.0f}%"
+
+
+def test_compact_fields_mode_shrinks_multi_result_payloads(tmp_path: Path) -> None:
+    """graph_neighbors with fields=[...] vs. the full default node shape."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    # A hub function called by many others -- realistic "who calls this" query.
+    callers = "\n\n".join(f"def caller_{i}():\n    return hub()\n" for i in range(30))
+    module_path = repo / "hub.py"
+    module_path.write_text("def hub():\n    return 1\n\n\n" + callers)
+
+    db_path = tmp_path / "graph.db"
+    build_index(repo, db_path)
+
+    conn = connect(db_path)
+    hub_id = next(n["id"] for n in db_queries.search(conn, "hub") if n["name"] == "hub")
+
+    full = db_queries.neighbors(conn, hub_id, direction="in")
+    compact = db_queries.project_list(full["incoming"], ["id", "name"])
+
+    full_tokens = _estimate_tokens(json.dumps(full["incoming"]))
+    compact_tokens = _estimate_tokens(json.dumps(compact))
+
+    reduction_pct = 100 * (1 - compact_tokens / full_tokens)
+    assert compact_tokens < full_tokens
+    # Dropping signature/meta/line spans across 30 results should be a large win.
+    assert reduction_pct > 30, f"expected a meaningful reduction, got only {reduction_pct:.0f}%"
+
+
+def test_doc_field_avoids_a_read_span_round_trip(tmp_path: Path) -> None:
+    """With a populated `doc`, graph_search alone can answer "what does this do" --
+    no follow-up graph_read_span call needed, saving that call's entire token cost."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    module_path = repo / "pricing.py"
+    module_path.write_text(SAMPLE_MODULE)
+
+    db_path = tmp_path / "graph.db"
+    build_index(repo, db_path)
+
+    conn = connect(db_path)
+    search_results = db_queries.search(conn, "compute_widget_price")
+    target = search_results[0]
+    assert target["doc"] == "The function we actually need to find and understand."
+
+    search_only_tokens = _estimate_tokens(json.dumps(search_results))
+
+    span_text = read_span(repo, target["path"], target["line_start"], target["line_end"])["text"]
+    search_plus_span_tokens = search_only_tokens + _estimate_tokens(span_text)
+
+    assert search_only_tokens < search_plus_span_tokens

@@ -16,6 +16,7 @@ class NodeRecord:
     line_end: int | None
     hash: str | None
     meta: str  # JSON string
+    doc: str | None = None  # first docstring line, Python symbols only for now
 
 
 @dataclass

@@ -42,10 +42,14 @@ can jump from "which requirement does this function satisfy?" to "who calls
 this function?" without leaving the graph.
 
 The core design goal is **context efficiency**: every tool returns pointers
-(node id, path, line span, signature) rather than file contents. Only
-`graph_read_span` reads actual source text, and only for the exact range you
-ask for. This is what keeps token usage flat as a codebase grows, compared to
-an agent that reads whole files to find what it needs.
+(node id, path, line span, signature, and a one-line `doc` where available)
+rather than file contents. Only `graph_read_span` reads actual source text,
+and only for the exact range you ask for (requests over 500 lines are
+truncated rather than rejected, with a cursor to fetch the rest). List-
+shaped tools accept `limit`/`max_results` caps and an optional `fields`
+filter to shrink responses further. This is what keeps token usage flat as
+a codebase grows, compared to an agent that reads whole files to find what
+it needs.
 
 ## Installing
 
@@ -194,20 +198,29 @@ shared across calls).
 
 | Tool | Signature | Returns |
 | --- | --- | --- |
-| `graph_search` | `(query: str, limit: int = 20)` | Hybrid lexical+semantic ranked node list (falls back to lexical-only without embeddings) |
-| `graph_file_outline` | `(path: str)` | List of symbols (name, signature, line span) declared in `path`, no bodies |
-| `graph_get_symbol` | `(node_id: str)` | Signature/location/doc metadata for one node, no body |
-| `graph_neighbors` | `(node_id: str, direction: str = "both", edge_types: list[str] \| None = None)` | Nodes connected to `node_id`; `direction` is `in`\|`out`\|`both` |
-| `graph_impact` | `(node_id: str, max_depth: int = 2)` | Blast radius — nodes that transitively depend on/call/import `node_id` |
-| `graph_subgraph` | `(seed_ids: list[str], max_nodes: int = 50, max_depth: int = 2)` | Focused, token-budgeted slice of the graph around the seed nodes |
-| `graph_read_span` | `(path: str, line_start: int, line_end: int)` | Exact source text for a line range (max 500 lines per call) |
-| `graph_trace` | `(node_id: str \| None = None)` | Trace neighbors for `node_id`, or (if omitted) a list of coverage gaps across all requirements/plan items |
+| `graph_search` | `(query: str, limit: int = 20, fields: list[str] \| None = None)` | Hybrid lexical+semantic ranked node list (falls back to lexical-only without embeddings) |
+| `graph_file_outline` | `(path: str, limit: int = 300, fields: list[str] \| None = None)` | List of symbols (name, signature, line span, doc) declared in `path`, no bodies; `truncated: true` if more than `limit` exist |
+| `graph_get_symbol` | `(node_id: str, fields: list[str] \| None = None)` | Signature/location/doc metadata for one node, no body |
+| `graph_neighbors` | `(node_id: str, direction: str = "both", edge_types: list[str] \| None = None, limit: int = 200, fields: list[str] \| None = None)` | Nodes connected to `node_id`; `direction` is `in`\|`out`\|`both`; `truncated: true` if either side hit `limit` |
+| `graph_impact` | `(node_id: str, max_depth: int = 2, max_results: int = 300, fields: list[str] \| None = None)` | Blast radius — nodes that transitively depend on/call/import `node_id`; `truncated: true` if `max_results` was hit |
+| `graph_subgraph` | `(seed_ids: list[str], max_nodes: int = 50, max_depth: int = 2, fields: list[str] \| None = None)` | Focused, token-budgeted slice of the graph around the seed nodes |
+| `graph_read_span` | `(path: str, line_start: int, line_end: int)` | Exact source text for a line range. Spans over 500 lines are truncated to 500 and returned with `truncated: true` + `next_line_start` instead of erroring |
+| `graph_trace` | `(node_id: str \| None = None, limit: int = 300)` | Trace neighbors for `node_id`, or (if omitted) a list of coverage gaps across all requirements/plan items; `truncated: true` if `limit` was hit |
 
 Notes:
 
 - Every tool returns `{"error": "..."}` on failure (bad node id, SQLite
   error, etc.) instead of raising, so a client always gets a well-formed
   response.
+- `fields` (on the node-returning tools above) projects each result down to
+  just the requested keys (e.g. `fields=["id","name"]`) to shrink payloads
+  when full signatures/metadata aren't needed — omit it for the full node
+  shape (`id`, `type`, `path`, `name`, `signature`, `line_start`, `line_end`,
+  `meta`, `doc`).
+- `doc` holds the first line of a symbol's docstring where available
+  (Python only, for now) — often enough to answer "what does this do"
+  straight from `graph_search`/`graph_get_symbol` without a follow-up
+  `graph_read_span` call.
 - `graph_search` lazily loads the embedding model only if the database
   actually has a populated `vec_nodes` table — a lexical-only index never
   pays that startup cost.
@@ -399,7 +412,10 @@ graph is built.
   you expect. Pass explicit `--db`/`ROOT` to bypass it if needed.
 - **`graph_read_span` errors with a path/range issue.** Paths are resolved
   against the server's `--root` (see [serve](#copilot-graph-spec-serve---root-path---db-path)),
-  not your shell's cwd; ranges are capped at 500 lines per call.
+  not your shell's cwd. Requests over 500 lines aren't an error — they come
+  back truncated with `truncated: true` and a `next_line_start` cursor;
+  actual errors mean a missing file, a path that escapes `--root`, or
+  `line_end < line_start`.
 - **Stale results after editing files outside the workflow.** Only
   `copilot-graph-spec index`/`--incremental`/`watch` update the database — nothing
   watches the filesystem implicitly unless `watch` is actually running.

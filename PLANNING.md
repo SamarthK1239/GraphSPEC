@@ -148,3 +148,43 @@ historical record above (including `spec/features/cli-version-flag/*.md`,
 which still references the old `graph_mcp/` paths as they were at the time
 that example was built).
 
+## Phase 12: token-optimization hardening
+
+Audited the 8 `graph_*` tools for remaining token-efficiency gaps beyond the
+already-measured 83.7% reduction (Phase 8's benchmark) and closed four:
+
+- **Bounded result sets**: `graph_file_outline`, `graph_neighbors`,
+  `graph_impact`, and `graph_trace`'s coverage-gap listing previously had no
+  result cap (unlike `graph_search`/`graph_subgraph`, which already clamped
+  limits). All four now accept a `limit`/`max_results` param (generous
+  defaults, backward compatible) and report `"truncated": true` when a
+  caller should narrow its query instead of assuming it saw everything.
+- **Field-selection (`fields=`) projection**: every node-returning tool
+  (`graph_search`, `graph_file_outline`, `graph_get_symbol`,
+  `graph_neighbors`, `graph_impact`, `graph_subgraph`) now accepts an
+  optional `fields` list to shrink each result down to just the requested
+  keys (e.g. `fields=["id","name"]`) — `None` (default) preserves the
+  original full-shape behavior.
+- **Populated the previously-dead `doc` field**: `nodes_fts.doc` existed in
+  the schema since Phase 1 but was always inserted as `NULL`; `nodes` had no
+  `doc` column at all. Added `doc TEXT` to `nodes` (with an `ALTER TABLE`
+  migration guard in `connect()` for pre-existing DBs), extract each Python
+  symbol's first docstring line in `extractor.py` (JS/TS/TSX intentionally
+  out of scope — no reliable docstring node, would need raw-comment
+  scanning), and wire it through `write_records`/`_row_to_node`. Lets
+  `graph_search`/`graph_get_symbol` answer "what does this do" without a
+  follow-up `graph_read_span` call.
+- **Graceful `graph_read_span` overflow**: spans over 500 lines used to
+  hard-fail with `ValueError`; now clamped to 500 lines and returned as a
+  successful partial result with `"truncated": true` and a
+  `"next_line_start"` cursor, avoiding a guess-and-retry round trip.
+
+All changes are additive/backward compatible except the read_span overflow
+behavior change (error → truncated success), which is a deliberate, scoped
+exception — the one existing test asserting the old error was updated to
+assert the new truncated shape instead. `test_token_benchmark.py` gained two
+new measured cases (`fields=` projection savings on a 30-caller fan-in, and
+`doc`-avoids-a-round-trip) alongside the original whole-file-vs-graph-path
+benchmark. 57 tests total (was 47).
+
+
